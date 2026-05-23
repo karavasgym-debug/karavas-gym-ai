@@ -94,7 +94,7 @@ if submit_button:
         
         with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό 7ήμερο πλάνο διατροφής και προπόνησής σου συνυπολογίζοντας τα αθλήματά σου..."):
             try:
-                BACKEND_URL = "http://127.0.0.1:8000/generate-plan"
+                BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
 response = requests.post(BACKEND_URL, json=payload)
                 
                 if response.status_code == 200:
