@@ -1,2 +1,7 @@
 streamlit
+fastapi
+uvicorn
 openai
+pydantic
+reportlab
+requests

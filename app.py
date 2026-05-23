@@ -1,16 +1,19 @@
 import streamlit as st
-from openai import OpenAI
+import requests
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
-st.set_page_config(page_title="Karavas Gym - AI Coach", page_icon="💪", layout="centered")
+st.set_page_config(page_title="Smart Nutrition Coach", page_icon="🥑", layout="centered")
 
-# Αρχικοποίηση OpenAI Client (Απευθείας στο Frontend)
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+st.title("Smart Nutrition Coach 🥑")
+st.write("Συμπλήρωσε τα στοιχεία σου για να δημιουργήσουμε το ιδανικό πλάνο διατροφής και προπόνησης.")
 
-st.title("Karavas Gym AI Coach 🥑💪")
-st.write("Καλώς ήρθες στον ψηφιακό Coach του Karavas Gym. Συμπλήρωσε τα στοιχεία σου για να λάβεις το εξατομικευμένο σου πλάνο.")
-
-# Φόρμα Εισαγωγής Στοιχείων
 with st.form("nutrition_form"):
+    gender = st.radio("Φύλο", ["Άνδρας", "Γυναίκα"], horizontal=True)
     col1, col2 = st.columns(2)
     
     with col1:
@@ -20,82 +23,94 @@ with st.form("nutrition_form"):
     
     with col2:
         goal = st.selectbox("Στόχος", ["Απώλεια λίπους", "Μυϊκή υπερτροφία", "Συντήρηση / Σύσφιξη"])
+        diet_type = st.selectbox("Τύπος Διατροφής", ["Ισορροπημένη (Balanced)", "Υψηλή σε Πρωτεΐνη (High Protein)", "Κετογονική (Keto)", "Χορτοφαγική (Vegetarian)", "Αυστηρά Χορτοφαγική (Vegan)"])
         activity_level = st.selectbox(
-            "Επίπεδο Δραστηριότητας", 
+            "Επίπεδο Γενικής Δραστηριότητας", 
             ["Καθιστική ζωή (γραφείο)", "Ήπια άσκηση (1-3 μέρες/βδομάδα)", "Έντονη άσκηση (4-7 μέρες/βδομάδα)"]
         )
-        training_type = st.selectbox("Είδος Προπόνησης", ["Προπόνηση με Βάρη (Gym)", "Brazilian Jiu-Jitsu (BJJ) / MMA", "Calisthenics", "Cardio / Τρέξιμο"])
-    
+        
+    # Νέα επιλογή για 1-3 αθλητικές δραστηριότητες
+    available_activities = [
+        "Γυμναστήριο (Βάρη)", "Τρέξιμο / Jogging", "Κολύμβηση", "Ποδηλασία", 
+        "Crossfit", "Ποδόσφαιρο", "Μπάσκετ", "Τένις", "Γιόγκα / Πιλάτες", 
+        "Πολεμικές Τέχνες", "Πεζοπορία (Hiking)"
+    ]
+    selected_activities = st.multiselect(
+        "Επίλεξε αθλητικές δραστηριότητες (1 έως 3)", 
+        options=available_activities,
+        max_selections=3
+    )
+        
+    allergies = st.text_input("Αλλεργίες / Τροφές που αποφεύγεις", value="Καμία")
     submit_button = st.form_submit_button(label="Δημιουργία Πλάνου ✨")
 
+def create_pdf(text_content):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    
+    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+    styles = getSampleStyleSheet()
+    
+    greek_style = ParagraphStyle(
+        'GreekStyle',
+        parent=styles['Normal'],
+        fontName='DejaVuSans',
+        fontSize=11,
+        leading=16,
+        spaceAfter=10
+    )
+    
+    story = []
+    lines = text_content.split('\n')
+    for line in lines:
+        clean_line = line.replace('**', '').replace('###', '').replace('##', '').replace('$', '').strip()
+        if clean_line:
+            clean_line = clean_line.replace('\\[', '').replace('\\]', '')
+            p = Paragraph(clean_line, greek_style)
+            story.append(p)
+        else:
+            story.append(Spacer(1, 10))
+            
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
 if submit_button:
-    with st.spinner("Ο Coach του Karavas Gym δημιουργεί το 7ήμερο πλάνο σου..."):
-        try:
-            # Μαθηματικοί Υπολογισμοί
-            bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
-            
-            activity_multipliers = {
-                "Καθιστική ζωή (γραφείο)": 1.2,
-                "Ήπια άσκηση (1-3 μέρες/βδομάδα)": 1.375,
-                "Έντονη άσκηση (4-7 μέρες/βδομάδα)": 1.55
-            }
-            multiplier = activity_multipliers.get(activity_level, 1.2)
-            tdee = bmr * multiplier
-            
-            if "Απώλεια" in goal:
-                target_calories = tdee - 500
-                macro_notes = "Υψηλή πρωτεΐνη (2g ανά kg βάρους), ελεγχόμενος υδατάνθρακας, καλά λιπαρά."
-            elif "Υπερτροφία" in goal:
-                target_calories = tdee + 300
-                macro_notes = "Πρωτεΐνη στο 1.8-2g ανά kg βάρους, υψηλός υδατάνθρακας για ενέργεια."
-            else:
-                target_calories = tdee
-                macro_notes = "Ισορροπημένη κατανομή (40% Υδατάνθρακες, 30% Πρωτεΐνη, 30% Λίπη)."
-
-            prompt = f"""
-            Λειτούργησε ως Elite αθλητικός διατροφολόγος και Head Coach του Karavas Gym.
-            Ασκούμενος: {weight}kg | {height}cm | {age} ετών.
-            Στόχος: {goal} | Προπόνηση: {training_type}
-            Θερμίδες Στόχου: {round(target_calories)} kcal ({macro_notes})
-
-            Δημιούργησε ένα υπερ-αναλυτικό πλάνο σε 3 ενότητες:
-            ## 1. ΜΑΚΡΟΘΡΕΠΤΙΚΑ ΣΥΣΤΑΤΙΚΑ
-            Γραμμάρια για Πρωτεΐνη, Υδατάνθρακες, Λίπη για τις {round(target_calories)} θερμίδες.
-            
-            ## 2. ΠΛΑΝΟ ΔΙΑΤΡΟΦΗΣ 7 ΗΜΕΡΩΝ (ΔΕΥΤΕΡΑ ΕΩΣ ΚΥΡΙΑΚΗ)
-            Αναλυτικό μενού μέρα προς μέρα (Πρωινό, Μεσημεριανό, Σνακ, Δείπνο) με ποικιλία.
-            
-            ## 3. ΟΛΟΚΛΗΡΩΜΕΝΟ ΑΣΚΗΣΙΟΛΟΓΙΟ
-            Εβδομαδιαίο πρόγραμμα για '{training_type}'. Συγκεκριμένες ασκήσεις (5-7 ανά ημέρα), sets, reps, ξεκούραση και σημειώσεις τεχνικής.
-            """
-
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Είσαι ο Head Coach του Karavas Gym. Απαντάς με κορυφαίο επαγγελματισμό και χρησιμοποιείς πλούσιο Markdown (πίνακες, έντονα γράμματα, λίστες)."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
-            
-            plan_output = response.choices[0].message.content
-            
-            st.success("Το πλάνο σου είναι έτοιμο! 🎉")
-            
-            tab1, tab2 = st.tabs(["📊 Μεταβολικοί Δείκτες", "📝 Ολοκληρωμένο Πλάνο"])
-            with tab1:
-                st.markdown("### Στατιστικά Μεταβολισμού")
-                st.info(f"**Βασικός Μεταβολισμός (BMR):** {round(bmr)} θερμίδες")
-                st.warning(f"**Θερμίδες Συντήρησης (TDEE):** {round(tdee)} θερμίδες")
-                st.success(f"**Ημερήσιος Στόχος Θερμίδων:** {round(target_calories)} θερμίδες")
-            with tab2:
-                st.markdown(plan_output)
-                st.markdown("---")
-                st.download_button(
-                    label="📥 Κατέβασε το Πλάνο σου (TXT)",
-                    data=plan_output,
-                    file_name="karavas_gym_plan.txt",
-                    mime="text/plain"
-                )
-        except Exception as e:
-            st.error(f"Σφάλμα κατά τη δημιουργία: {e}")
+    # Έλεγχος αν ο χρήστης ξέχασε να επιλέξει δραστηριότητα
+    if not selected_activities:
+        st.warning("Παρακαλώ επίλεξε τουλάχιστον 1 αθλητική δραστηριότητα!")
+    else:
+        payload = {
+            "gender": gender,
+            "weight": weight,
+            "height": height,
+            "age": age,
+            "goal": goal,
+            "activity_level": activity_level,
+            "diet_type": diet_type,
+            "allergies": allergies,
+            "activities": selected_activities # Στέλνουμε τις δραστηριότητες στο API
+        }
+        
+        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό 7ήμερο πλάνο διατροφής και προπόνησής σου συνυπολογίζοντας τα αθλήματά σου..."):
+            try:
+                BACKEND_URL = "http://127.0.0.1:8000/generate-plan"
+response = requests.post(BACKEND_URL, json=payload)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    st.success("Το πλάνο σου είναι έτοιμο! 🎉")
+                    st.markdown("---")
+                    st.markdown(result["plan"])
+                    
+                    pdf_bytes = create_pdf(result["plan"])
+                    st.download_button(
+                        label="📥 Κατέβασμα Πλάνου σε PDF",
+                        data=pdf_bytes,
+                        file_name="my_nutrition_plan.pdf",
+                        mime="application/pdf"
+                    )
+                else:
+                    st.error(f"Σφάλμα Backend: {response.text}")
+            except Exception as e:
+                st.error(f"Αδυναμία σύνδεσης με τον server: {e}")
