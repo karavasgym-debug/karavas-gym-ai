@@ -29,7 +29,6 @@ with st.form("nutrition_form"):
             ["Καθιστική ζωή (γραφείο)", "Ήπια άσκηση (1-3 μέρες/βδομάδα)", "Έντονη άσκηση (4-7 μέρες/βδομάδα)"]
         )
         
-    # Νέα επιλογή για 1-3 αθλητικές δραστηριότητες
     available_activities = [
         "Γυμναστήριο (Βάρη)", "Τρέξιμο / Jogging", "Κολύμβηση", "Ποδηλασία", 
         "Crossfit", "Ποδόσφαιρο", "Μπάσκετ", "Τένις", "Γιόγκα / Πιλάτες", 
@@ -76,7 +75,6 @@ def create_pdf(text_content):
     return buffer.getvalue()
 
 if submit_button:
-    # Έλεγχος αν ο χρήστης ξέχασε να επιλέξει δραστηριότητα
     if not selected_activities:
         st.warning("Παρακαλώ επίλεξε τουλάχιστον 1 αθλητική δραστηριότητα!")
     else:
@@ -89,13 +87,14 @@ if submit_button:
             "activity_level": activity_level,
             "diet_type": diet_type,
             "allergies": allergies,
-            "activities": selected_activities # Στέλνουμε τις δραστηριότητες στο API
+            "activities": selected_activities
         }
         
-        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό 7ήμερο πλάνο διατροφής και προπόνησής σου συνυπολογίζοντας τα αθλήματά σου..."):
+        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό 7ήμερο πλάνο διατροφής και προπόνησής σου..."):
             try:
+                # Εδώ είναι το Live Link του Render, σωστά τοποθετημένο μέσα στο try block
                 BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
-response = requests.post(BACKEND_URL, json=payload)
+                response = requests.post(BACKEND_URL, json=payload)
                 
                 if response.status_code == 200:
                     result = response.json()
