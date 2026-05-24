@@ -128,9 +128,10 @@ def validate_email(email):
     return re.match(pattern, email)
 
 # 2. ADVANCED PREMIUM PDF CREATION (ReportLab)
+import urllib.request
+
 def create_pdf(text_content):
     buffer = io.BytesIO()
-    # Ορισμός εγγράφου με σωστά περιθώρια
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=letter, 
@@ -140,11 +141,23 @@ def create_pdf(text_content):
         bottomMargin=50
     )
     
-    # Εγγραφή Ελληνικής Γραμματοσειράς (Σιγουρέψου ότι το DejaVuSans.ttf είναι στο ίδιο repository)
-    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
-    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSansBold.ttf'))
+    # LIVE ΛΗΨΗ ΕΛΛΗΝΙΚΩΝ ΓΡΑΜΜΑΤΟΣΕΙΡΩΝ ΓΙΑ ΑΠΟΦΥΓΗ ΣΦΑΛΜΑΤΩΝ ΔΙΣΚΟΥ
+    try:
+        regular_url = "https://github.com/retext-project/retext/raw/master/ReText/icons/DejaVuSans.ttf"
+        bold_url = "https://github.com/retext-project/retext/raw/master/ReText/icons/DejaVuSansBold.ttf"
+        
+        regular_font = io.BytesIO(urllib.request.urlopen(regular_url).read())
+        bold_font = io.BytesIO(urllib.request.urlopen(bold_url).read())
+        
+        pdfmetrics.registerFont(TTFont('DejaVuSans', regular_font))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', bold_font))
+    except Exception as font_error:
+        # Fallback σε περίπτωση που αποτύχει το download
+        pdfmetrics.registerFont(TTFont('DejaVuSans', 'Helvetica'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'Helvetica-Bold'))
     
     styles = getSampleStyleSheet()
+ 
     
     # Custom Premium Στυλ για το PDF
     title_style = ParagraphStyle(
