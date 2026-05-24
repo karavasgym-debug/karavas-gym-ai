@@ -20,31 +20,36 @@ st.set_page_config(
 )
 
 # Custom CSS για Premium Dark Aesthetic (Karavas Gym Style)
+# Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση
 st.markdown("""
     <style>
         /* Φόντο και βασικά χρώματα */
         .stApp {
             background-color: #0E1117;
-            color: #E0E0E0;
+            color: #FFFFFF !important;
+        }
+        /* Εξασφάλιση ότι όλα τα απλά κείμενα, labels και Markdown φαίνονται πεντακάθαρα */
+        .stMarkdown, p, span, label, .stDataFrame {
+            color: #E0E2E6 !important;
         }
         /* Τίτλοι και Headers */
-        h1, h2, h3 {
+        h1, h2, h3, h4, h5, h6 {
             color: #FFFFFF !important;
             font-family: 'Helvetica Neue', sans-serif;
         }
         /* Highlight χρυσό/neon για το Gym Branding */
         .highlight-text {
-            color: #FFD700;
+            color: #FFD700 !important;
             font-weight: bold;
         }
         /* Στυλ για τα Tabs */
         .stTabs [data-baseweb="tab"] {
-            color: #999999;
+            color: #8A99AD !important;
             font-size: 16px;
             font-weight: bold;
         }
         .stTabs [data-baseweb="tab"]:hover {
-            color: #FFD700;
+            color: #FFD700 !important;
         }
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
             color: #FFD700 !important;
@@ -57,14 +62,19 @@ st.markdown("""
             border-radius: 10px;
             padding: 25px;
         }
-        /* Custom Box για το AI Plan Output */
+        /* Custom Box για το AI Plan Output - ΠΕΝΤΑΚΑΘΑΡΑ ΛΕΥΚΑ ΓΡΑΜΜΑΤΑ */
         .premium-response-box {
             background-color: #161B22;
             border-left: 5px solid #FFD700;
-            padding: 20px;
+            padding: 25px;
             border-radius: 5px;
             margin-top: 20px;
-            line-height: 1.6;
+            line-height: 1.7;
+            color: #FFFFFF !important;
+        }
+        /* Διόρθρωση για τα Markdown στοιχεία ΜΕΣΑ στο response box */
+        .premium-response-box * {
+            color: #FFFFFF !important;
         }
     </style>
 """, unsafe_allow_html=True)
