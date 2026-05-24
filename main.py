@@ -127,7 +127,8 @@ async def generate_plan(data: dict):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Παρακαλώ δημιούργησε το εξειδικευμένο πλάνο διατροφής μου."}
             ],
-            temperature=0.7
+            temperature=0.7,
+            max_tokens=3000  # <-- ΑΥΤΗ ΕΙΝΑΙ Η ΔΙΟΡΘΩΣΗ!
         )
         plan_text = response.choices[0].message.content
         return {"plan": plan_text}
