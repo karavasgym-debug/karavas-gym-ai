@@ -65,19 +65,23 @@ st.markdown("""
     }
     
     /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
+    /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
     div.stButton > button, div.stDownloadButton > button {
         color: #FFFFFF !important;
         background-color: #262730 !important;
         border: 1px solid #FFD700 !important;
         font-weight: bold !important;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease-in-out;
     }
-    /* Εφέ Hover στα κουμπιά */
-    div.stButton > button:hover, div.stDownloadButton > button:hover {
-        color: #0E1117 !important;
-        background-color: #FFD700 !important;
+    
+    /* Εφέ Hover, Active και Focus - Εξασφάλιση Μαύρων Γραμμάτων στο Κίτρινο Φόντο */
+    div.stButton > button:hover, div.stDownloadButton > button:hover,
+    div.stButton > button:active, div.stDownloadButton > button:active,
+    div.stButton > button:focus, div.stDownloadButton > button:focus {
+        color: #0E1117 !important; /* Σκούρο μαύρο φόντο της εφαρμογής για τέλεια αντίθεση */
+        background-color: #FFD700 !important; /* Έντονο χρυσό/κίτρινο */
         border: 1px solid #FFD700 !important;
-        box-shadow: 0px 0px 10px #FFD700;
+        box-shadow: 0px 0px 12px #FFD700;
     }
 
     /* Custom Box για το AI Plan Output */
