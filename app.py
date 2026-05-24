@@ -21,81 +21,80 @@ st.set_page_config(
 
 # Custom CSS για Premium Dark Aesthetic (Karavas Gym Style)
 # Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση
+# Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση σε Γράμματα και Κουμπιά
 st.markdown("""
-    # Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση σε Γράμματα και Κουμπιά
-st.markdown("""
-    <style>
-        /* Φόντο και βασικά χρώματα */
-        .stApp {
-            background-color: #0E1117;
-            color: #FFFFFF !important;
-        }
-        /* Εξασφάλιση ότι όλα τα απλά κείμενα, labels και Markdown φαίνονται πεντακάθαρα */
-        .stMarkdown, p, span, label, .stDataFrame {
-            color: #E0E2E6 !important;
-        }
-        /* Τίτλοι και Headers */
-        h1, h2, h3, h4, h5, h6 {
-            color: #FFFFFF !important;
-            font-family: 'Helvetica Neue', sans-serif;
-        }
-        /* Highlight χρυσό/neon για το Gym Branding */
-        .highlight-text {
-            color: #FFD700 !important;
-            font-weight: bold;
-        }
-        /* Στυλ για τα Tabs */
-        .stTabs [data-baseweb="tab"] {
-            color: #8A99AD !important;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .stTabs [data-baseweb="tab"]:hover {
-            color: #FFD700 !important;
-        }
-        .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            color: #FFD700 !important;
-            border-bottom-color: #FFD700 !important;
-        }
-        /* Στυλ Φόρμας και Κουτιών */
-        div[data-testid="stForm"] {
-            background-color: #1A1F2C;
-            border: 1px solid #2D3748;
-            border-radius: 10px;
-            padding: 25px;
-        }
-        
-        /* 🚨 ΑΠΟΛΥΤΗ ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) 🚨 */
-        div.stButton > button, div.stDownloadButton > button {
-            color: #FFFFFF !important; /* Λευκά γράμματα */
-            background-color: #262730 !important; /* Σκούρο φόντο κουμπιού */
-            border: 1px solid #FFD700 !important; /* Χρυσό περίγραμμα για στυλ */
-            font-weight: bold !important;
-            transition: all 0.3s ease;
-        }
-        /* Εφέ όταν περνάει το ποντίκι πάνω από το κουμπί (Hover) */
-        div.stButton > button:hover, div.stDownloadButton > button:hover {
-            color: #0E1117 !important; /* Σκούρα γράμματα στο hover */
-            background-color: #FFD700 !important; /* Χρυσό φόντο στο hover */
-            border: 1px solid #FFD700 !important;
-            box-shadow: 0px 0px 10px #FFD700;
-        }
+<style>
+    /* Φόντο και βασικά χρώματα */
+    .stApp {
+        background-color: #0E1117;
+        color: #FFFFFF !important;
+    }
+    /* Εξασφάλιση ότι όλα τα απλά κείμενα, labels και Markdown φαίνονται πεντακάθαρα */
+    .stMarkdown, p, span, label, .stDataFrame {
+        color: #E0E2E6 !important;
+    }
+    /* Τίτλοι και Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: #FFFFFF !important;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+    /* Highlight χρυσό/neon για το Gym Branding */
+    .highlight-text {
+        color: #FFD700 !important;
+        font-weight: bold;
+    }
+    /* Στυλ για τα Tabs */
+    .stTabs [data-baseweb="tab"] {
+        color: #8A99AD !important;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #FFD700 !important;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        color: #FFD700 !important;
+        border-bottom-color: #FFD700 !important;
+    }
+    /* Στυλ Φόρμας και Κουτιών */
+    div[data-testid="stForm"] {
+        background-color: #1A1F2C;
+        border: 1px solid #2D3748;
+        border-radius: 10px;
+        padding: 25px;
+    }
+    
+    /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
+    div.stButton > button, div.stDownloadButton > button {
+        color: #FFFFFF !important;
+        background-color: #262730 !important;
+        border: 1px solid #FFD700 !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease;
+    }
+    /* Εφέ Hover στα κουμπιά */
+    div.stButton > button:hover, div.stDownloadButton > button:hover {
+        color: #0E1117 !important;
+        background-color: #FFD700 !important;
+        border: 1px solid #FFD700 !important;
+        box-shadow: 0px 0px 10px #FFD700;
+    }
 
-        /* Custom Box για το AI Plan Output - ΠΕΝΤΑΚΑΘΑΡΑ ΛΕΥΚΑ ΓΡΑΜΜΑΤΑ */
-        .premium-response-box {
-            background-color: #161B22;
-            border-left: 5px solid #FFD700;
-            padding: 25px;
-            border-radius: 5px;
-            margin-top: 20px;
-            line-height: 1.7;
-            color: #FFFFFF !important;
-        }
-        /* Διόρθρωση για τα Markdown στοιχεία ΜΕΣΑ στο response box */
-        .premium-response-box * {
-            color: #FFFFFF !important;
-        }
-    </style>
+    /* Custom Box για το AI Plan Output */
+    .premium-response-box {
+        background-color: #161B22;
+        border-left: 5px solid #FFD700;
+        padding: 25px;
+        border-radius: 5px;
+        margin-top: 20px;
+        line-height: 1.7;
+        color: #FFFFFF !important;
+    }
+    /* Διόρθρωση για τα Markdown στοιχεία ΜΕΣΑ στο response box */
+    .premium-response-box * {
+        color: #FFFFFF !important;
+    }
+</style>
 """, unsafe_allow_html=True)
 
 # Κεντρικός Τίτλος με Premium Visualς
