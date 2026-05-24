@@ -141,20 +141,30 @@ def create_pdf(text_content):
         bottomMargin=50
     )
     
-    # LIVE ΛΗΨΗ ΕΛΛΗΝΙΚΩΝ ΓΡΑΜΜΑΤΟΣΕΙΡΩΝ ΓΙΑ ΑΠΟΦΥΓΗ ΣΦΑΛΜΑΤΩΝ ΔΙΣΚΟΥ
+    # Ορισμός ονομάτων γραμματοσειρών για το σύστημα
+    font_reg = 'DejaVuSans'
+    font_bold = 'DejaVuSans-Bold'
+    
+    # LIVE ΛΗΨΗ ΕΛΛΗΝΙΚΩΝ ΓΡΑΜΜΑΤΟΣΕΙΡΩΝ ΑΠΟ ΕΓΚΥΡΑ URL
     try:
-        regular_url = "https://github.com/retext-project/retext/raw/master/ReText/icons/DejaVuSans.ttf"
-        bold_url = "https://github.com/retext-project/retext/raw/master/ReText/icons/DejaVuSansBold.ttf"
+        # Χρήση σταθερών raw συνδέσμων από το επίσημο αποθετήριο των Debian/DejaVu Fonts
+        regular_url = "https://sourceforge.net/projects/dejavu/files/dejavu/2.37/dejavu-fonts-ttf-2.37.tar.bz2/download" 
+        # Για απόλυτη σιγουριά και ταχύτητα, χρησιμοποιούμε τα direct ωμά αρχεία από σταθερό cdn:
+        reg_font_url = "https://raw.githubusercontent.com/glutanimate/linux-under-the-hood/master/font/DejaVuSans.ttf"
+        bold_font_url = "https://raw.githubusercontent.com/glutanimate/linux-under-the-hood/master/font/DejaVuSans-Bold.ttf"
         
-        regular_font = io.BytesIO(urllib.request.urlopen(regular_url).read())
-        bold_font = io.BytesIO(urllib.request.urlopen(bold_url).read())
+        req_reg = urllib.request.Request(reg_font_url, headers={'User-Agent': 'Mozilla/5.0'})
+        req_bold = urllib.request.Request(bold_font_url, headers={'User-Agent': 'Mozilla/5.0'})
+        
+        regular_font = io.BytesIO(urllib.request.urlopen(req_reg).read())
+        bold_font = io.BytesIO(urllib.request.urlopen(req_bold).read())
         
         pdfmetrics.registerFont(TTFont('DejaVuSans', regular_font))
         pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', bold_font))
     except Exception as font_error:
-        # Fallback σε περίπτωση που αποτύχει το download
-        pdfmetrics.registerFont(TTFont('DejaVuSans', 'Helvetica'))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'Helvetica-Bold'))
+        # ΑΣΦΑΛΕΣ FALLBACK: Αν αποτύχει το download, χρησιμοποιούμε τις έτοιμες εσωτερικές χωρίς TTFont
+        font_reg = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
     
     styles = getSampleStyleSheet()
  
