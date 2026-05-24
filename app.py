@@ -217,9 +217,15 @@ def create_pdf(text_content):
 # ==========================================
 # TAB 1: ΔΗΜΙΟΥΡΓΙΑ ΠΛΑΝΟΥ
 # ==========================================
+# ==========================================
+# TAB 1: ΔΗΜΙΟΥΡΓΙΑ ΠΛΑΝΟΥ
+# ==========================================
 with tab1:
     with st.form("nutrition_form"):
-        st.markdown('### 1. Στοιχεία Επικοινωνίας <span style="font-size:12px; color:gray;">(Υποχρεωτικά)</span>', unsafe_allow_html=True)
+        # ΠΡΟΣΩΠΟΠΟΙΗΜΕΝΟΣ & ΔΥΝΑΜΙΚΟΣ ΤΙΤΛΟΣ LEAD GENERATION
+        st.markdown('### ⚡ ΠΟΥ ΝΑ ΣΟΥ ΣΤΕΙΛΟΥΜΕ ΤΟ ΠΛΑΝΟ ΣΟΥ;', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:14px; color:#FFD700; margin-top:-10px; margin-bottom:15px;">Κλείδωσε τη θέση σου και ξεκίνα τη μεταμόρφωσή σου σήμερα.</p>', unsafe_allow_html=True)
+        
         col_lead1, col_lead2 = st.columns(2)
         with col_lead1:
             full_name = st.text_input("Ονοματεπώνυμο *")
@@ -228,7 +234,10 @@ with tab1:
             user_phone = st.text_input("Κινητό Τηλέφωνο *")
 
         st.markdown("---")
-        st.markdown('### 2. Φυσικά Χαρακτηριστικά & Στόχοι', unsafe_allow_html=True)
+        # ΠΙΑΣΑΡΙΚΟΣ ΤΙΤΛΟΣ ΓΙΑ ΤΑ ΦΥΣΙΚΑ ΧΑΡΑΚΤΗΡΙΣΤΙΚΑ
+        st.markdown('### 📊 Η ΑΚΤΙΝΟΓΡΑΦΙΑ ΤΟΥ ΣΤΟΧΟΥ ΣΟΥ', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:14px; color:gray; margin-top:-10px; margin-bottom:15px;">Δώσε στην AI τα ακριβή σου δεδομένα για να "ράψει" το πλάνο στα μέτρα σου.</p>', unsafe_allow_html=True)
+        
         gender = st.radio("Φύλο", ["Άνδρας", "Γυναίκα"], horizontal=True)
         col1, col2 = st.columns(2)
         
