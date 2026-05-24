@@ -15,7 +15,7 @@ st.subheader("Karavas Gym Fighting & Fitness")
 st.write("Συμπλήρωσε τα στοιχεία σου για να λάβεις το εξατομικευμένο 7ήμερο πλάνο διατροφής & προπόνησης.")
 
 with st.form("nutrition_form"):
-    st.markdown("### 1. Στοιχεία Επικοινωνίας (Για την αποστολή του πλάνου)")
+    st.markdown('<p style="font-size:18px; font-weight:bold; margin-bottom:0px;">1. Στοιχεία Επικοινωνίας (Για την αποστολή του πλάνου)</p>', unsafe_allow_html=True)
     col_lead1, col_lead2 = st.columns(2)
     with col_lead1:
         full_name = st.text_input("Ονοματεπώνυμο *")
@@ -24,7 +24,7 @@ with st.form("nutrition_form"):
         user_phone = st.text_input("Κινητό Τηλέφωνο *")
 
     st.markdown("---")
-    st.markdown("### 2. Φυσικά Χαρακτηριστικά & Στόχοι")
+    st.markdown('<p style="font-size:18px; font-weight:bold; margin-bottom:0px;">2. Φυσικά Χαρακτηριστικά & Στόχοι</p>', unsafe_allow_html=True)
     gender = st.radio("Φύλο", ["Άνδρας", "Γυναίκα"], horizontal=True)
     col1, col2 = st.columns(2)
     
