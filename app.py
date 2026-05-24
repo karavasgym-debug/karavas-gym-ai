@@ -11,7 +11,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 st.set_page_config(page_title="Smart Nutrition Coach - Karavas Gym", page_icon="🥑", layout="centered")
 
 st.title("Smart Nutrition Coach 🥑")
-st.subheader("by Karavas Gym")
+st.subheader("Karavas Gym Fighting & Fitness")
 st.write("Συμπλήρωσε τα στοιχεία σου για να λάβεις το εξατομικευμένο 7ήμερο πλάνο διατροφής & προπόνησης.")
 
 with st.form("nutrition_form"):
