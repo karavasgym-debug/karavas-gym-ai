@@ -119,18 +119,36 @@ async def generate_plan(data: dict):
     """
 
     try:
-        # Χρήση του νέου API call της OpenAI
+        # 1. Μετατρέπουμε τη λίστα των αθλημάτων σε ένα καθαρό κείμενο διαχωρισμένο με κόμματα
+        # (Υποθέτουμε ότι η συνάρτησή σου δέχεται ένα λεξικό 'data' ή 'request' με τα inputs)
+        activities_list = data.get("activities", [])
+        activities_str = ", ".join(activities_list) if activities_list else "Γενική γυμναστική"
+        
+        # 2. Φτιάχνουμε το δυναμικό μήνυμα χρήστη που απαιτεί ΚΑΙ προπόνηση
+        user_message = f"""
+        Γεια σου! Είμαι {data.get('gender', 'Άνδρας/Γυναίκα')}, ηλικίας {data.get('age', '-')} ετών, με βάρος {data.get('weight', '-')}kg και ύψος {data.get('height', '-')}cm.
+        Ο στόχος μου είναι: {data.get('goal', '-')}.
+        Ο τύπος διατροφής που θέλω είναι: {data.get('diet_type', '-')}.
+        Οι αθλητικές δραστηριότητες που επιλέγω και κάνω είναι: {activities_str}.
+        Αλλεργίες / Τροφές που αποφεύγω: {data.get('allergies', 'Καμία')}.
+        Συμπερίληψη συμπληρωμάτων: {'Ναι' if data.get('include_supplements') else 'Όχι'}.
+
+        Με βάση αυτά τα δεδομένα, δημιούργησε το εξειδικευμένο πλάνο ΔΙΑΤΡΟΦΗΣ μου καθώς και το αναλυτικό εβδομαδιαίο πρόγραμμα ΠΡΟΠΟΝΗΣΗΣ (Weekly Split) της εβδομάδας, προσαρμοσμένο στα αθλήματα που επέλεξα.
+        """
+
+        # Χρήση του API call της OpenAI με το νέο δυναμικό μήνυμα
         client = openai.OpenAI()
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Παρακαλώ δημιούργησε το εξειδικευμένο πλάνο διατροφής μου."}
+                {"role": "user", "content": user_message}  # <-- ΕΔΩ μπαίνει το νέο full μήνυμα
             ],
             temperature=0.7,
-            max_tokens=3000  # <-- ΑΥΤΗ ΕΙΝΑΙ Η ΔΙΟΡΘΩΣΗ!
+            max_tokens=3000
         )
         plan_text = response.choices[0].message.content
         return {"plan": plan_text}
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
