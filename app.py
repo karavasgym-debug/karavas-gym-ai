@@ -127,9 +127,13 @@ def validate_email(email):
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     return re.match(pattern, email)
 
+# ==========================================
 # 2. ADVANCED PREMIUM PDF CREATION (ReportLab)
+# ==========================================
 def create_pdf(text_content):
     buffer = io.BytesIO()
+    
+    # Ορίζουμε τη σελίδα και τα περιθώρια
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=letter, 
@@ -139,21 +143,29 @@ def create_pdf(text_content):
         bottomMargin=50
     )
     
-    # Χρήση των εγγενών core γραμματοσειρών της ReportLab (Δεν χρειάζονται αρχεία ή download)
-    font_reg = 'Helvetica'
-    font_bold = 'Helvetica-Bold'
+    # Προσπάθεια φόρτωσης της Ελληνικής γραμματοσειράς DejaVu από τον φάκελό σου
+    try:
+        pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSansBold.ttf'))
+        font_reg = 'DejaVuSans'
+        font_bold = 'DejaVuSans-Bold'
+    except Exception as e:
+        # Αν για κάποιο λόγο δεν βρεθούν τα αρχεία, γυρνάει σε Helvetica (as fallback)
+        font_reg = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
     
     styles = getSampleStyleSheet()
     
-    # Custom Premium Στυλ για το PDF
+    # PREMIUM ΣΤΥΛ ΜΕ ΣΩΣΤΟ LEADING (ΑΠΟΣΤΑΣΗ ΓΡΑΜΜΩΝ) ΓΙΑ ΤΑ ΕΛΛΗΝΙΚΑ
     title_style = ParagraphStyle(
         'PDFTitle',
         parent=styles['Normal'],
         fontName=font_bold,
-        fontSize=22,
+        fontSize=20,
+        leading=24,
         textColor=colors.HexColor('#1A1F2C'),
-        spaceAfter=15,
-        alignment=1
+        spaceAfter=8,
+        alignment=1 # Στο κέντρο
     )
     
     subtitle_style = ParagraphStyle(
@@ -161,7 +173,8 @@ def create_pdf(text_content):
         parent=styles['Normal'],
         fontName=font_reg,
         fontSize=12,
-        textColor=colors.HexColor('#FFD700'),
+        leading=16,
+        textColor=colors.HexColor('#D4AF37'), # Gold premium χρώμα
         spaceAfter=25,
         alignment=1
     )
@@ -171,9 +184,10 @@ def create_pdf(text_content):
         parent=styles['Normal'],
         fontName=font_bold,
         fontSize=14,
+        leading=18,
         textColor=colors.HexColor('#1A1F2C'),
-        spaceBefore=18,
-        spaceAfter=8
+        spaceBefore=15,
+        spaceAfter=10
     )
     
     body_style = ParagraphStyle(
@@ -181,41 +195,40 @@ def create_pdf(text_content):
         parent=styles['Normal'],
         fontName=font_reg,
         fontSize=10,
-        leading=15,
+        leading=16, # Πολύ σημαντικό για να μην καβαλάει η μία γραμμή την άλλη
         textColor=colors.HexColor('#333333'),
         spaceAfter=8
     )
-
+    
     story = []
     
-    # Header του PDF
+    # 1. Προσθήκη Κεφαλίδας (Branding)
     story.append(Paragraph("KARAVAS GYM – SMART NUTRITION", title_style))
     story.append(Paragraph("Εξατομικευμένο Πλάνο Διατροφής & Αθλητικής Απόδοσης", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#1A1F2C'), spaceAfter=20))
+    story.append(Spacer(1, 10))
     
-    # Επεξεργασία και Δομή του Κειμένου της AI
+    # 2. Επεξεργασία και "σπάσιμο" του κειμένου της AI σε παραγράφους
     lines = text_content.split('\n')
     for line in lines:
-        clean_line = line.replace('**', '').replace('$', '').strip()
+        clean_line = line.strip()
         
-        # Ανίχνευση Τίτλων (π.χ. 1., 2., 3. ή ##) για εφαρμογή Bold Στυλ
-        if line.startswith('###') or line.startswith('##') or re.match(r'^\d+\.', clean_line):
-            clean_line = clean_line.replace('###', '').replace('##', '').strip()
-            story.append(Spacer(1, 10))
-            story.append(Paragraph(clean_line, h1_style))
-            story.append(HRFlowable(width="30%", thickness=1, color=colors.HexColor('#FFD700'), hAlign='LEFT', spaceAfter=10))
-        elif clean_line:
-            story.append(Paragraph(clean_line, body_style))
+        if clean_line:
+            # Αν η γραμμή είναι τίτλος (π.χ. ξεκινάει με # ή είναι κεφαλαία ενότητα)
+            if clean_line.startswith('#') or clean_line.startswith('1.') or clean_line.startswith('2.'):
+                # Καθαρίζουμε τα σύμβολα #
+                formatted_title = clean_line.replace('#', '').strip()
+                story.append(Paragraph(formatted_title, h1_style))
+            else:
+                # Κανονικό κείμενο ή bullet points
+                story.append(Paragraph(clean_line, body_style))
         else:
-            story.append(Spacer(1, 6))
+            # Αν είναι κενή γραμμή, βάζουμε μικρό κενό διάστημα
+            story.append(Spacer(1, 5))
             
+    # Χτίσιμο του εγγράφου
     doc.build(story)
     buffer.seek(0)
-    return buffer.getvalue()
-
-# ==========================================
-# TAB 1: ΔΗΜΙΟΥΡΓΙΑ ΠΛΑΝΟΥ
-# ==========================================
+    return buffer
 # ==========================================
 # TAB 1: ΔΗΜΙΟΥΡΓΙΑ ΠΛΑΝΟΥ
 # ==========================================
