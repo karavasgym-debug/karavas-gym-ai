@@ -146,7 +146,9 @@ def create_pdf(text_content):
     # Προσπάθεια φόρτωσης της Ελληνικής γραμματοσειράς DejaVu από τον φάκελό σου
     try:
         pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSansBold.ttf'))
+        # ΠΡΟΣΟΧΗ: Εδώ μπήκε η παύλα 'DejaVuSans-Bold.ttf' για να ταιριάζει με το GitHub σου
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSans-Bold.ttf')) 
+        
         font_reg = 'DejaVuSans'
         font_bold = 'DejaVuSans-Bold'
     except Exception as e:
