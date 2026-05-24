@@ -142,7 +142,7 @@ if submit_button:
                 if response.status_code == 200:
                     result = response.json()
                     st.success(f"Ευχαριστούμε {full_name}! Το πλάνο σου εκδόθηκε με επιτυχία! 🎉")
-                    st.info("💡 Ένας προπονητής του Karavas Gym θα εξετάσει το πλάνο σου και θα επικοινωνήσει μαζί σου για μια δωρεάν λιπομέτρηση!")
+                    st.info("💡 Αν θέλετε μπορείτε να επικοινωνήσετε μαζί μας για μια δωρεάν ενημέρωση!")
                     st.markdown("---")
                     st.markdown(result["plan"])
                     
