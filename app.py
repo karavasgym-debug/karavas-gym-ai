@@ -92,7 +92,7 @@ if submit_button:
         st.error("Παρακαλώ συμπλήρωσε το Ονοματεπώνυμό σου!")
     elif not validate_email(user_email):
         st.error("Παρακαλώ βάλε ένα έγκυρο Email!")
-    elif len(user_phone).strip() < 10:
+    elif len(user_phone.strip()) < 10:
         st.error("Παρακαλώ βάλε ένα έγκυρο Κινητό Τηλέφωνο!")
     elif not selected_activities:
         st.warning("Παρακαλώ επίλεξε τουλάχιστον 1 αθλητική δραστηριότητα!")
