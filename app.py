@@ -41,6 +41,10 @@ with st.form("nutrition_form"):
     )
         
     allergies = st.text_input("Αλλεργίες / Τροφές που αποφεύγεις", value="Καμία")
+    
+    # Νέα επιλογή για συμπληρώματα
+    include_supplements = st.checkbox("Θέλω να συμπεριληφθούν προτάσεις για νόμιμα συμπληρώματα διατροφής 💊")
+    
     submit_button = st.form_submit_button(label="Δημιουργία Πλάνου ✨")
 
 def create_pdf(text_content):
@@ -87,12 +91,12 @@ if submit_button:
             "activity_level": activity_level,
             "diet_type": diet_type,
             "allergies": allergies,
-            "activities": selected_activities
+            "activities": selected_activities,
+            "include_supplements": include_supplements # Αποστολή της επιλογής στο Backend
         }
         
-        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό 7ήμερο πλάνο διατροφής και προπόνησής σου..."):
+        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό πλάνο, τη λίστα σούπερ μάρκετ και το κοστολόγιο..."):
             try:
-                # Εδώ είναι το Live Link του Render, σωστά τοποθετημένο μέσα στο try block
                 BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
                 response = requests.post(BACKEND_URL, json=payload)
                 
