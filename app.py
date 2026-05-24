@@ -128,8 +128,6 @@ def validate_email(email):
     return re.match(pattern, email)
 
 # 2. ADVANCED PREMIUM PDF CREATION (ReportLab)
-import urllib.request
-
 def create_pdf(text_content):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -141,49 +139,27 @@ def create_pdf(text_content):
         bottomMargin=50
     )
     
-    # Ορισμός ονομάτων γραμματοσειρών για το σύστημα
-    font_reg = 'DejaVuSans'
-    font_bold = 'DejaVuSans-Bold'
-    
-    # LIVE ΛΗΨΗ ΕΛΛΗΝΙΚΩΝ ΓΡΑΜΜΑΤΟΣΕΙΡΩΝ ΑΠΟ ΕΓΚΥΡΑ URL
-    try:
-        # Χρήση σταθερών raw συνδέσμων από το επίσημο αποθετήριο των Debian/DejaVu Fonts
-        regular_url = "https://sourceforge.net/projects/dejavu/files/dejavu/2.37/dejavu-fonts-ttf-2.37.tar.bz2/download" 
-        # Για απόλυτη σιγουριά και ταχύτητα, χρησιμοποιούμε τα direct ωμά αρχεία από σταθερό cdn:
-        reg_font_url = "https://raw.githubusercontent.com/glutanimate/linux-under-the-hood/master/font/DejaVuSans.ttf"
-        bold_font_url = "https://raw.githubusercontent.com/glutanimate/linux-under-the-hood/master/font/DejaVuSans-Bold.ttf"
-        
-        req_reg = urllib.request.Request(reg_font_url, headers={'User-Agent': 'Mozilla/5.0'})
-        req_bold = urllib.request.Request(bold_font_url, headers={'User-Agent': 'Mozilla/5.0'})
-        
-        regular_font = io.BytesIO(urllib.request.urlopen(req_reg).read())
-        bold_font = io.BytesIO(urllib.request.urlopen(req_bold).read())
-        
-        pdfmetrics.registerFont(TTFont('DejaVuSans', regular_font))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', bold_font))
-    except Exception as font_error:
-        # ΑΣΦΑΛΕΣ FALLBACK: Αν αποτύχει το download, χρησιμοποιούμε τις έτοιμες εσωτερικές χωρίς TTFont
-        font_reg = 'Helvetica'
-        font_bold = 'Helvetica-Bold'
+    # Χρήση των εγγενών core γραμματοσειρών της ReportLab (Δεν χρειάζονται αρχεία ή download)
+    font_reg = 'Helvetica'
+    font_bold = 'Helvetica-Bold'
     
     styles = getSampleStyleSheet()
- 
     
     # Custom Premium Στυλ για το PDF
     title_style = ParagraphStyle(
         'PDFTitle',
         parent=styles['Normal'],
-        fontName='DejaVuSans-Bold',
+        fontName=font_bold,
         fontSize=22,
         textColor=colors.HexColor('#1A1F2C'),
         spaceAfter=15,
-        alignment=1 # Center
+        alignment=1
     )
     
     subtitle_style = ParagraphStyle(
         'PDFSubtitle',
         parent=styles['Normal'],
-        fontName='DejaVuSans',
+        fontName=font_reg,
         fontSize=12,
         textColor=colors.HexColor('#FFD700'),
         spaceAfter=25,
@@ -193,7 +169,7 @@ def create_pdf(text_content):
     h1_style = ParagraphStyle(
         'PDFH1',
         parent=styles['Normal'],
-        fontName='DejaVuSans-Bold',
+        fontName=font_bold,
         fontSize=14,
         textColor=colors.HexColor('#1A1F2C'),
         spaceBefore=18,
@@ -203,7 +179,7 @@ def create_pdf(text_content):
     body_style = ParagraphStyle(
         'PDFBody',
         parent=styles['Normal'],
-        fontName='DejaVuSans',
+        fontName=font_reg,
         fontSize=10,
         leading=15,
         textColor=colors.HexColor('#333333'),
