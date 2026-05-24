@@ -88,13 +88,12 @@ def create_pdf(text_content):
     return buffer.getvalue()
 
 if submit_button:
-    # Αυστηροί έλεγχοι για το Lead Generation
     if not full_name.strip():
         st.error("Παρακαλώ συμπλήρωσε το Ονοματεπώνυμό σου!")
     elif not validate_email(user_email):
         st.error("Παρακαλώ βάλε ένα έγκυρο Email!")
     elif len(user_phone).strip() < 10:
-        st.error("Παρακαλώ βάλε ένα έγκυρο Κινητό Τηλέφωνο (τουλάχιστον 10 ψηφία)!")
+        st.error("Παρακαλώ βάλε ένα έγκυρο Κινητό Τηλέφωνο!")
     elif not selected_activities:
         st.warning("Παρακαλώ επίλεξε τουλάχιστον 1 αθλητική δραστηριότητα!")
     else:
@@ -113,18 +112,37 @@ if submit_button:
         
         with st.spinner("🔄 Το AI σχεδιάζει το πλάνο σου και καταχωρεί τα στοιχεία σου..."):
             try:
-                # Εδώ στέλνουμε τα στοιχεία επικοινωνίας μαζί με τα fitness δεδομένα
-                # Σημείωση: Στο επόμενο βήμα θα προσθέσουμε τη σύνδεση με το Google Sheets εδώ!
+                # 1. Καταχώρηση στο Google Sheet
+                from streamlit_gsheets import GSheetsConnection
+                import pandas as pd
+                from datetime import datetime
+                
+                conn = st.connection("gsheets", type=GSheetsConnection)
+                
+                # Διαβάζουμε τα υπάρχοντα δεδομένα
+                existing_data = conn.read(ttl=0)
+                
+                # Φτιάχνουμε τη νέα γραμμή
+                new_lead = pd.DataFrame([{
+                    "Ημερομηνία": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "Ονοματεπώνυμο": full_name,
+                    "Email": user_email,
+                    "Κινητό": user_phone,
+                    "Στόχος": goal
+                }])
+                
+                # Ενώνουμε τα δεδομένα και τα αποθηκεύουμε
+                updated_data = pd.concat([existing_data, new_lead], ignore_index=True)
+                conn.update(data=updated_data)
+                
+                # 2. Κλήση του Backend για το πλάνο
                 BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
                 response = requests.post(BACKEND_URL, json=payload)
                 
                 if response.status_code == 200:
                     result = response.json()
                     st.success(f"Ευχαριστούμε {full_name}! Το πλάνο σου εκδόθηκε με επιτυχία! 🎉")
-                    
-                    # Εδώ θα εμφανίσουμε ένα μήνυμα Call-To-Action για το γυμναστήριο
                     st.info("💡 Ένας προπονητής του Karavas Gym θα εξετάσει το πλάνο σου και θα επικοινωνήσει μαζί σου για μια δωρεάν λιπομέτρηση!")
-                    
                     st.markdown("---")
                     st.markdown(result["plan"])
                     
@@ -138,4 +156,4 @@ if submit_button:
                 else:
                     st.error(f"Σφάλμα Backend: {response.text}")
             except Exception as e:
-                st.error(f"Αδυναμία σύνδεσης με τον server: {e}")
+                st.error(f"Σφάλμα κατά την καταχώρηση ή τη σύνδεση: {e}")
