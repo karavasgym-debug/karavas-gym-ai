@@ -1,18 +1,30 @@
 import streamlit as st
 import requests
 import io
+import re
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-st.set_page_config(page_title="Smart Nutrition Coach", page_icon="🥑", layout="centered")
+st.set_page_config(page_title="Smart Nutrition Coach - Karavas Gym", page_icon="🥑", layout="centered")
 
 st.title("Smart Nutrition Coach 🥑")
-st.write("Συμπλήρωσε τα στοιχεία σου για να δημιουργήσουμε το ιδανικό πλάνο διατροφής και προπόνησης.")
+st.subheader("by Karavas Gym")
+st.write("Συμπλήρωσε τα στοιχεία σου για να λάβεις το εξατομικευμένο 7ήμερο πλάνο διατροφής & προπόνησης.")
 
 with st.form("nutrition_form"):
+    st.markdown("### 1. Στοιχεία Επικοινωνίας (Για την αποστολή του πλάνου)")
+    col_lead1, col_lead2 = st.columns(2)
+    with col_lead1:
+        full_name = st.text_input("Ονοματεπώνυμο *")
+        user_email = st.text_input("Email *")
+    with col_lead2:
+        user_phone = st.text_input("Κινητό Τηλέφωνο *")
+
+    st.markdown("---")
+    st.markdown("### 2. Φυσικά Χαρακτηριστικά & Στόχοι")
     gender = st.radio("Φύλο", ["Άνδρας", "Γυναίκα"], horizontal=True)
     col1, col2 = st.columns(2)
     
@@ -32,7 +44,7 @@ with st.form("nutrition_form"):
     available_activities = [
         "Γυμναστήριο (Βάρη)", "Τρέξιμο / Jogging", "Κολύμβηση", "Ποδηλασία", 
         "Crossfit", "Ποδόσφαιρο", "Μπάσκετ", "Τένις", "Γιόγκα / Πιλάτες", 
-        "Πολεμικές Τέχνες", "Πεζοπορία (Hiking)"
+        "Πολεμικές Τέχνες / BJJ", "Πεζοπορία (Hiking)"
     ]
     selected_activities = st.multiselect(
         "Επίλεξε αθλητικές δραστηριότητες (1 έως 3)", 
@@ -41,11 +53,13 @@ with st.form("nutrition_form"):
     )
         
     allergies = st.text_input("Αλλεργίες / Τροφές που αποφεύγεις", value="Καμία")
-    
-    # Νέα επιλογή για συμπληρώματα
     include_supplements = st.checkbox("Θέλω να συμπεριληφθούν προτάσεις για νόμιμα συμπληρώματα διατροφής 💊")
     
-    submit_button = st.form_submit_button(label="Δημιουργία Πλάνου ✨")
+    submit_button = st.form_submit_button(label="Λήψη Πλάνου ✨")
+
+def validate_email(email):
+    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    return re.match(pattern, email)
 
 def create_pdf(text_content):
     buffer = io.BytesIO()
@@ -55,12 +69,7 @@ def create_pdf(text_content):
     styles = getSampleStyleSheet()
     
     greek_style = ParagraphStyle(
-        'GreekStyle',
-        parent=styles['Normal'],
-        fontName='DejaVuSans',
-        fontSize=11,
-        leading=16,
-        spaceAfter=10
+        'GreekStyle', parent=styles['Normal'], fontName='DejaVuSans', fontSize=11, leading=16, spaceAfter=10
     )
     
     story = []
@@ -79,7 +88,14 @@ def create_pdf(text_content):
     return buffer.getvalue()
 
 if submit_button:
-    if not selected_activities:
+    # Αυστηροί έλεγχοι για το Lead Generation
+    if not full_name.strip():
+        st.error("Παρακαλώ συμπλήρωσε το Ονοματεπώνυμό σου!")
+    elif not validate_email(user_email):
+        st.error("Παρακαλώ βάλε ένα έγκυρο Email!")
+    elif len(user_phone).strip() < 10:
+        st.error("Παρακαλώ βάλε ένα έγκυρο Κινητό Τηλέφωνο (τουλάχιστον 10 ψηφία)!")
+    elif not selected_activities:
         st.warning("Παρακαλώ επίλεξε τουλάχιστον 1 αθλητική δραστηριότητα!")
     else:
         payload = {
@@ -92,17 +108,23 @@ if submit_button:
             "diet_type": diet_type,
             "allergies": allergies,
             "activities": selected_activities,
-            "include_supplements": include_supplements # Αποστολή της επιλογής στο Backend
+            "include_supplements": include_supplements
         }
         
-        with st.spinner("🔄 Το AI σχεδιάζει το αναλυτικό πλάνο, τη λίστα σούπερ μάρκετ και το κοστολόγιο..."):
+        with st.spinner("🔄 Το AI σχεδιάζει το πλάνο σου και καταχωρεί τα στοιχεία σου..."):
             try:
+                # Εδώ στέλνουμε τα στοιχεία επικοινωνίας μαζί με τα fitness δεδομένα
+                # Σημείωση: Στο επόμενο βήμα θα προσθέσουμε τη σύνδεση με το Google Sheets εδώ!
                 BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
                 response = requests.post(BACKEND_URL, json=payload)
                 
                 if response.status_code == 200:
                     result = response.json()
-                    st.success("Το πλάνο σου είναι έτοιμο! 🎉")
+                    st.success(f"Ευχαριστούμε {full_name}! Το πλάνο σου εκδόθηκε με επιτυχία! 🎉")
+                    
+                    # Εδώ θα εμφανίσουμε ένα μήνυμα Call-To-Action για το γυμναστήριο
+                    st.info("💡 Ένας προπονητής του Karavas Gym θα εξετάσει το πλάνο σου και θα επικοινωνήσει μαζί σου για μια δωρεάν λιπομέτρηση!")
+                    
                     st.markdown("---")
                     st.markdown(result["plan"])
                     
@@ -110,7 +132,7 @@ if submit_button:
                     st.download_button(
                         label="📥 Κατέβασμα Πλάνου σε PDF",
                         data=pdf_bytes,
-                        file_name="my_nutrition_plan.pdf",
+                        file_name="karavas_gym_plan.pdf",
                         mime="application/pdf"
                     )
                 else:
