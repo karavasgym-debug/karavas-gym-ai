@@ -22,6 +22,8 @@ st.set_page_config(
 # Custom CSS για Premium Dark Aesthetic (Karavas Gym Style)
 # Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση
 st.markdown("""
+    # Custom CSS για Premium Dark Aesthetic με Καθαρή Αντίθεση σε Γράμματα και Κουμπιά
+st.markdown("""
     <style>
         /* Φόντο και βασικά χρώματα */
         .stApp {
@@ -62,6 +64,23 @@ st.markdown("""
             border-radius: 10px;
             padding: 25px;
         }
+        
+        /* 🚨 ΑΠΟΛΥΤΗ ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) 🚨 */
+        div.stButton > button, div.stDownloadButton > button {
+            color: #FFFFFF !important; /* Λευκά γράμματα */
+            background-color: #262730 !important; /* Σκούρο φόντο κουμπιού */
+            border: 1px solid #FFD700 !important; /* Χρυσό περίγραμμα για στυλ */
+            font-weight: bold !important;
+            transition: all 0.3s ease;
+        }
+        /* Εφέ όταν περνάει το ποντίκι πάνω από το κουμπί (Hover) */
+        div.stButton > button:hover, div.stDownloadButton > button:hover {
+            color: #0E1117 !important; /* Σκούρα γράμματα στο hover */
+            background-color: #FFD700 !important; /* Χρυσό φόντο στο hover */
+            border: 1px solid #FFD700 !important;
+            box-shadow: 0px 0px 10px #FFD700;
+        }
+
         /* Custom Box για το AI Plan Output - ΠΕΝΤΑΚΑΘΑΡΑ ΛΕΥΚΑ ΓΡΑΜΜΑΤΑ */
         .premium-response-box {
             background-color: #161B22;
