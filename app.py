@@ -64,24 +64,39 @@ st.markdown("""
         padding: 25px;
     }
     
-    /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
-    /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
-    div.stButton > button, div.stDownloadButton > button {
+  
+    /* ΔΙΟΡΘΩΣΗ ΓΙΑ ΟΛΑ ΤΑ ΚΟΥΜΠΙΑ (BUTTONS) */
+    div.stButton > button, div.stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
         color: #FFFFFF !important;
         background-color: #262730 !important;
         border: 1px solid #FFD700 !important;
-        font-weight: bold !important;
+        font-weight: 900 !important; /* Μέγιστο πάχος γραμματοσειράς */
+        font-size: 16px !important; /* Ελαφρώς μεγαλύτερο μέγεθος */
+        text-transform: uppercase !important; /* Κεφαλαία γράμματα για στυλ */
+        letter-spacing: 1px !important; /* Απόσταση στα γράμματα */
         transition: all 0.2s ease-in-out;
     }
     
-    /* Εφέ Hover, Active και Focus - Εξασφάλιση Μαύρων Γραμμάτων στο Κίτρινο Φόντο */
-    div.stButton > button:hover, div.stDownloadButton > button:hover,
-    div.stButton > button:active, div.stDownloadButton > button:active,
-    div.stButton > button:focus, div.stDownloadButton > button:focus {
-        color: #0E1117 !important; /* Σκούρο μαύρο φόντο της εφαρμογής για τέλεια αντίθεση */
-        background-color: #FFD700 !important; /* Έντονο χρυσό/κίτρινο */
+    /* Εξασφάλιση έντονης γραφής για το κείμενο ΜΕΣΑ στο κουμπί */
+    div.stButton > button p, div.stDownloadButton > button p, div[data-testid="stFormSubmitButton"] > button p {
+        font-weight: 900 !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Εφέ Hover, Active και Focus - Χρυσό φόντο με κατάμαυρα έντονα γράμματα */
+    div.stButton > button:hover, div.stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover,
+    div.stButton > button:active, div.stDownloadButton > button:active, div[data-testid="stFormSubmitButton"] > button:active,
+    div.stButton > button:focus, div.stDownloadButton > button:focus, div[data-testid="stFormSubmitButton"] > button:focus {
+        color: #0E1117 !important;
+        background-color: #FFD700 !important;
         border: 1px solid #FFD700 !important;
-        box-shadow: 0px 0px 12px #FFD700;
+        box-shadow: 0px 0px 15px #FFD700;
+    }
+
+    /* Διόρθρωση χρώματος κειμένου στο hover για τα εσωτερικά στοιχεία <p> */
+    div.stButton > button:hover p, div.stDownloadButton > button:hover p, div[data-testid="stFormSubmitButton"] > button:hover p {
+        color: #0E1117 !important;
+        font-weight: 900 !important;
     }
 
     /* Custom Box για το AI Plan Output */
