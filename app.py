@@ -337,7 +337,8 @@ with tab2:
                             "Κινητό": u_phone,
                             "Στόχος": u_goal,
                             "Τύπος": "Check-in",
-                            "Βάρος Check-in": current_weight
+                            "Βάρος Check-in": current_weight,
+                            "Κατάσταση Email": "Check-in"  # Αποφυγή triggering του αυτόματου mail πλάνου
                         }])
                         df_updated = pd.concat([df, new_row], ignore_index=True)
                         conn.update(data=df_updated)
