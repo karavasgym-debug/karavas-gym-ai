@@ -248,18 +248,22 @@ with tab1:
                 try:
                     conn = st.connection("gsheets", type=GSheetsConnection)
                     existing_data = conn.read(ttl=0)
+                    
+                    # 1. Προσθέτουμε τη στήλη "Κατάσταση Email" με τιμή "Σε αναμονή" για να μην φύγει το email πρόωρα
                     new_lead = pd.DataFrame([{
                         "Ημερομηνία": datetime.now().strftime("%d/%m/%Y %H:%M"),
                         "Ονοματεπώνυμο": full_name,
-                        "Email": user_email,
+                        "Email": user_email.strip(),
                         "Κινητό": user_phone,
                         "Στόχος": goal,
                         "Τύπος": "New Plan",
-                        "Βάρος Check-in": weight
+                        "Βάρος Check-in": weight,
+                        "Κατάσταση Email": "Σε αναμονή"  # <-- 8η Στήλη (Στήλη Η)
                     }])
                     updated_data = pd.concat([existing_data, new_lead], ignore_index=True)
                     conn.update(data=updated_data)
                     
+                    # Κλήση του API για τη δημιουργία του πλάνου
                     BACKEND_URL = "https://karavas-api.onrender.com/generate-plan"
                     response = requests.post(BACKEND_URL, json=payload)
                     
@@ -267,6 +271,19 @@ with tab1:
                         result = response.json()
                         st.success(f"Ευχαριστούμε {full_name}! Το premium πλάνο σου εκδόθηκε με επιτυχία! 🎉")
                         
+                        # 2. ΑΦΟΥ ΒΓΗΚΕ ΤΟ ΠΛΑΝΟ: Αλλάζουμε την κατάσταση σε "Εκδόθηκε" για να πάρει μπρος το Google Script
+                        try:
+                            fresh_data = conn.read(ttl=0)
+                            # Βρίσκουμε τη σωστή γραμμή με βάση το email που μόλις καταχωρήσαμε
+                            idx = fresh_data[fresh_data['Email'].str.strip().str.lower() == user_email.strip().lower()].index
+                            if not idx.empty:
+                                # Ενημερώνουμε την τελευταία εγγραφή αυτού του email σε "Εκδόθηκε"
+                                fresh_data.loc[idx[-1], "Κατάσταση Email"] = "Εκδόθηκε"
+                                conn.update(data=fresh_data)
+                        except Exception as sheet_update_err:
+                            st.warning(f"Το πλάνο εκδόθηκε, αλλά απέτυχε η αυτόματη ενεργοποίηση του email: {sheet_update_err}")
+
+                        # Δημιουργία και κατέβασμα PDF
                         pdf_bytes = create_pdf(result["plan"])
                         st.download_button(label="📥 Κατέβασμα Πλάνου σε Premium PDF", data=pdf_bytes, file_name=f"Karavas_Gym_{full_name.replace(' ', '_')}.pdf", mime="application/pdf")
                         
