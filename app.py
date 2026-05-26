@@ -221,7 +221,7 @@ with tab1:
             
             with st.spinner("🔄 Η AI του Karavas Gym σχεδιάζει το πλάνο σου..."):
                 try:
-                    # 1. Εγγραφή στο Google Sheet με "Σε αναμονή"
+                    # 1. Πρώτη εγγραφή στο Google Sheet με την κατάσταση "Σε αναμονή"
                     existing_data = conn.read(worksheet="Sheet1", ttl=0)
                     plan_type = "Member Plan" if "Ναι" in is_member else "New Plan"
                     
@@ -247,7 +247,7 @@ with tab1:
                         result = response.json()
                         st.success(f"Ευχαριστούμε {full_name}! Το premium πλάνο σου εκδόθηκε με επιτυχία! 🎉")
                         
-                        # 2. Αλλαγή κατάστασης σε "Εκδόθηκε" για το Google Script
+                        # 2. Αλλαγή κατάστασης σε "Εκδόθηκε" (Αφού το Render απάντησε επιτυχώς)
                         try:
                             fresh_data = conn.read(worksheet="Sheet1", ttl=0)
                             idx = fresh_data[fresh_data['Email'].str.strip().str.lower() == user_email.strip().lower()].index
@@ -270,9 +270,20 @@ with tab1:
                         st.markdown(result["plan"])
                         st.markdown('</div>', unsafe_allow_html=True)
                     else:
-                        st.error(f"Σφάλμα Backend: {response.text}")
+                        # 🛠️ ΔΙΑΧΕΙΡΙΣΗ ΣΦΑΛΜΑΤΩΝ RENDER (π.χ. 502 Bad Gateway)
+                        st.error("🔴 Ο server της AI προετοιμάζεται ή είναι προσωρινά υπερφορτωμένος. Παρακαλώ περιμένετε 1 λεπτό και ξαναπατήστε το κουμπί!")
+                        
+                        # Ενημέρωση του Sheet με καταγραφή του προβλήματος
+                        try:
+                            error_data = conn.read(worksheet="Sheet1", ttl=0)
+                            idx = error_data[error_data['Email'].str.strip().str.lower() == user_email.strip().lower()].index
+                            if not idx.empty:
+                                error_data.loc[idx[-1], "Κατάσταση Email"] = "Σφάλμα Server (Render 502)"
+                                conn.update(worksheet="Sheet1", data=error_data)
+                        except:
+                            pass
                 except Exception as e:
-                    st.error(f"Σφάλμα: {e}")
+                    st.error(f"Σφάλμα σύνδεσης: {e}")
 
 # ==========================================
 # TAB 2: INTERACTIVE CHECK-IN & TRACKING
@@ -281,83 +292,4 @@ with tab2:
     st.markdown("### 📈 Εβδομαδιαίο Check-in Προόδου")
     st.write("Καταχώρησε το νέο σου βάρος για να παρακολουθείς την πορεία σου.")
     
-    checkin_email = st.text_input("Δώσε το Email σου για αναζήτηση:")
-    
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        btn_search = st.button("🔍 Εμφάνιση Προόδου & Ιστορικού")
-    
-    st.markdown("---")
-    current_weight = st.number_input("Νέο Βάρος (kg) για καταχώρηση:", min_value=30.0, max_value=200.0, value=75.0, step=0.1)
-    btn_checkin = st.button("⚖️ Καταχώρηση Νέου Βάρους")
-    
-    if btn_search or btn_checkin:
-        if not checkin_email.strip():
-            st.error("Παρακαλώ συμπληρώστε το email σας!")
-        else:
-            try:
-                with st.spinner("🔄 Σύνδεση με τη βάση δεδομένων..."):
-                    df = conn.read(worksheet="Sheet1", ttl=0)
-                    user_history = df[df['Email'].str.strip().str.lower() == checkin_email.strip().lower()]
-                    
-                    has_history = not user_history.empty
-                    u_name = user_history['Ονοματεπώνυμο'].iloc[0] if has_history else "Υπάρχων Πελάτης"
-                    u_phone = user_history['Κινητό'].iloc[0] if has_history else "-"
-                    u_goal = user_history['Στόχος'].iloc[0] if has_history else "-"
-                    
-                    if btn_checkin:
-                        new_row = pd.DataFrame([{
-                            "Ημερομηνία": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                            "Ονοματεπώνυμο": u_name,
-                            "Email": checkin_email.strip(),
-                            "Κινητό": u_phone,
-                            "Στόχος": u_goal,
-                            "Τύπος": "Check-in",
-                            "Βάρος Check-in": current_weight,
-                            "Κατάσταση Email": "Check-in"
-                        }])
-                        df_updated = pd.concat([df, new_row], ignore_index=True)
-                        conn.update(worksheet="Sheet1", data=df_updated)
-                        st.success("Το νέο σου βάρος καταχωρήθηκε επιτυχώς! 🥳")
-                        
-                        df = conn.read(worksheet="Sheet1", ttl=0)
-                        user_history = df[df['Email'].str.strip().str.lower() == checkin_email.strip().lower()]
-                        has_history = not user_history.empty
-                        u_goal = user_history['Στόχος'].iloc[0] if has_history else "-"
-                    
-                    if has_history:
-                        st.markdown(f"**Ο Στόχος σου:** <span class='highlight-text'>{u_goal}</span>", unsafe_allow_html=True)
-                        st.markdown("#### Η πορεία του βάρους σου:")
-                        
-                        user_history = user_history.copy()
-                        user_history['Βάρος Check-in'] = pd.to_numeric(user_history['Βάρος Check-in'], errors='coerce')
-                        user_history['Parsed_Date'] = pd.to_datetime(user_history['Ημερομηνία'], format='%d/%m/%Y %H:%M', errors='coerce')
-                        chart_data = user_history[['Parsed_Date', 'Βάρος Check-in']].dropna().sort_values('Parsed_Date')
-                        
-                        if not chart_data.empty:
-                            chart_data = chart_data.set_index('Parsed_Date')
-                            st.line_chart(chart_data)
-                            
-                            weights_list = chart_data['Βάρος Check-in'].tolist()
-                            if len(weights_list) >= 2:
-                                diff = weights_list[-1] - weights_list[-2]
-                                if "Απώλεια λίπους" in u_goal:
-                                    if diff < 0:
-                                        st.success(f"📉 Μειώθηκε το βάρος σου κατά {abs(diff):.1f} kg. Εξαιρετική δουλειά! 🔥")
-                                    elif diff > 0:
-                                        st.warning(f"📈 Το βάρος σου αυξήθηκε κατά {diff:.1f} kg.")
-                                    else:
-                                        st.info("⚖️ Το βάρος σου παρέμεινε σταθερό.")
-                                elif "Μυϊκή υπερτροφία" in u_goal:
-                                    if diff > 0:
-                                        st.success(f"📈 Το βάρος σου αυξήθηκε κατά {diff:.1f} kg. Μπράβο! 💪")
-                                    elif diff < 0:
-                                        st.error(f"📉 Χάνουμε κιλά ({abs(diff):.1f} kg)!")
-                                    else:
-                                        st.info("⚖️ Το βάρος σου παρέμεινε σταθερό.")
-                        else:
-                            st.warning("Δεν βρέθηκαν έγκυρα δεδομένα βάρους.")
-                    else:
-                        st.warning("Δεν βρέθηκε ιστορικό για αυτό το email.")
-            except Exception as e:
-                st.error(f"Σφάλμα κατά τη σύνδεση: {e}")
+    checkin_email = st.text_
