@@ -292,4 +292,4 @@ with tab2:
     st.markdown("### 📈 Εβδομαδιαίο Check-in Προόδου")
     st.write("Καταχώρησε το νέο σου βάρος για να παρακολουθείς την πορεία σου.")
     
-    checkin_email = st.text_
+    checkin_email = st.text_input("Δώσε το Email σου για αναζήτηση:")
