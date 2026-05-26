@@ -331,4 +331,33 @@ with tab2:
                         
                         user_history = user_history.copy()
                         user_history['Βάρος Check-in'] = pd.to_numeric(user_history['Βάρος Check-in'], errors='coerce')
-                        user_history['Parsed_Date'] = pd.to_datetime(user_history
+                        user_history['Parsed_Date'] = pd.to_datetime(user_history['Ημερομηνία'], format='%d/%m/%Y %H:%M', errors='coerce')
+                        chart_data = user_history[['Parsed_Date', 'Βάρος Check-in']].dropna().sort_values('Parsed_Date')
+                        
+                        if not chart_data.empty:
+                            chart_data = chart_data.set_index('Parsed_Date')
+                            st.line_chart(chart_data)
+                            
+                            weights_list = chart_data['Βάρος Check-in'].tolist()
+                            if len(weights_list) >= 2:
+                                diff = weights_list[-1] - weights_list[-2]
+                                if "Απώλεια λίπους" in u_goal:
+                                    if diff < 0:
+                                        st.success(f"📉 Μειώθηκε το βάρος σου κατά {abs(diff):.1f} kg. Εξαιρετική δουλειά! 🔥")
+                                    elif diff > 0:
+                                        st.warning(f"📈 Το βάρος σου αυξήθηκε κατά {diff:.1f} kg.")
+                                    else:
+                                        st.info("⚖️ Το βάρος σου παρέμεινε σταθερό.")
+                                elif "Μυϊκή υπερτροφία" in u_goal:
+                                    if diff > 0:
+                                        st.success(f"📈 Το βάρος σου αυξήθηκε κατά {diff:.1f} kg. Μπράβο! 💪")
+                                    elif diff < 0:
+                                        st.error(f"📉 Χάνουμε κιλά ({abs(diff):.1f} kg)!")
+                                    else:
+                                        st.info("⚖️ Το βάρος σου παρέμεινε σταθερό.")
+                        else:
+                            st.warning("Δεν βρέθηκαν έγκυρα δεδομένα βάρους.")
+                    else:
+                        st.warning("Δεν βρέθηκε ιστορικό για αυτό το email.")
+            except Exception as e:
+                st.error(f"Σφάλμα κατά τη σύνδεση: {e}")
