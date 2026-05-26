@@ -286,10 +286,161 @@ with tab1:
                     st.error(f"Σφάλμα σύνδεσης: {e}")
 
 # ==========================================
-# TAB 2: INTERACTIVE CHECK-IN & TRACKING
+# TAB 2: INTERACTIVE CHECK-IN & Tracking & AI Σύγκριση
 # ==========================================
 with tab2:
-    st.markdown("### 📈 Εβδομαδιαίο Check-in Προόδου")
-    st.write("Καταχώρησε το νέο σου βάρος για να παρακολουθείς την πορεία σου.")
+    st.markdown("### 📈 Εβδομαδιαίο Check-in & Έξυπνη Ανάλυση Προόδου")
+    st.write("Παρακολουθήστε την πορεία σας, δείτε τη σύγκριση αποτελεσμάτων και λάβετε προτάσεις.")
     
-    checkin_email = st.text_input("Δώσε το Email σου για αναζήτηση:")
+    # 🔍 ΕΝΟΤΗΤΑ Α: ΑΝΑΖΗΤΗΣΗ & ΣΥΓΚΡΙΣΗ ΑΠΟΤΕΛΕΣΜΑΤΩΝ
+    st.markdown("#### 1. Δείτε την Πρόοδό σας & Προτάσεις AI")
+    checkin_email = st.text_input("Δώσε το Email σου για αναζήτηση ιστορικού:", key="search_email_input")
+    btn_search = st.button("🔍 Εμφάνιση Προόδου & Γραφήματος")
+    
+    if btn_search:
+        if not checkin_email.strip():
+            st.error("Παρακαλώ συμπληρώστε το email σας για αναζήτηση!")
+        else:
+            try:
+                with st.spinner("🔄 Ανάκτηση και σύγκριση δεδομένων..."):
+                    df = conn.read(worksheet="Sheet1", ttl=0)
+                    user_history = df[df['Email'].str.strip().str.lower() == checkin_email.strip().lower()]
+                    
+                    if not user_history.empty:
+                        # Καθαρισμός και ταξινόμηση δεδομένων βάσει ημερομηνίας
+                        user_history = user_history.copy()
+                        user_history['Βάρος Check-in'] = pd.to_numeric(user_history['Βάρος Check-in'], errors='coerce')
+                        user_history['Parsed_Date'] = pd.to_datetime(user_history['Ημερομηνία'], format='%d/%m/%Y %H:%M', errors='coerce')
+                        chart_data = user_history[['Parsed_Date', 'Βάρος Check-in', 'Στόχος', 'Ονοματεπώνυμο']].dropna().sort_values('Parsed_Date')
+                        
+                        u_name = chart_data['Ονοματεπώνυμο'].iloc[0]
+                        u_goal = chart_data['Στόχος'].iloc[0]
+                        
+                        st.success(f"Καλώς ήρθες ξανά, {u_name}! 👋")
+                        st.markdown(f"**Ο Στόχος σου:** <span class='highlight-text'>{u_goal}</span>", unsafe_allow_html=True)
+                        
+                        if not chart_data.empty:
+                            # Εμφάνιση Γραφήματος
+                            st.markdown("#### 📊 Η πορεία του βάρους σου:")
+                            plot_data = chart_data.set_index('Parsed_Date')
+                            st.line_chart(plot_data['Βάρος Check-in'])
+                            
+                            # 🚨 ΕΞΥΠΝΗ ΣΥΓΚΡΙΣΗ ΑΠΟΤΕΛΕΣΜΑΤΩΝ
+                            weights_list = chart_data['Βάρος Check-in'].tolist()
+                            initial_weight = weights_list[0]
+                            current_weight = weights_list[-1]
+                            total_diff = current_weight - initial_weight
+                            
+                            st.markdown("#### 🧠 Σύγκριση & Αξιολόγηση Αποτελεσμάτων")
+                            col_res1, col_res2, col_res3 = st.columns(3)
+                            col_res1.metric(label="Αρχικό Βάρος", value=f"{initial_weight:.1f} kg")
+                            col_res2.metric(label="Τρέχον Βάρος", value=f"{current_weight:.1f} kg")
+                            col_res3.metric(label="Συνολική Μεταβολή", value=f"{total_diff:+.1f} kg", delta=f"{total_diff:.1f} kg")
+                            
+                            # 💡 ΑΥΤΟΜΑΤΗ ΠΡΟΤΑΣΗ ΛΥΣΕΩΝ & ΕΚΔΟΣΗ ΝΕΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ
+                            st.markdown('<div class="premium-response-box">', unsafe_allow_html=True)
+                            st.markdown("##### 🥑 Καθοδήγηση & Στρατηγική:")
+                            
+                            needs_readjustment = False
+                            
+                            if "Απώλεια λίπους" in u_goal:
+                                if total_diff <= -2.0:
+                                    st.markdown("✅ **Εξαιρετική Πρόοδος!** Το σώμα σου ανταποκρίνεται τέλεια στο θερμιδικό έλλειμμα. Συνέχισε ακριβώς με το ίδιο πλάνο διατροφής.")
+                                elif -2.0 < total_diff <= 0:
+                                    st.markdown("📉 **Θετική τάση, αλλά σταθερή.** Έχεις μια μικρή πτώση. Αν έχεις κολλήσει σε αυτό το βάρος για πάνω από 2 εβδομάδες, ίσως χρειάζεται να αυξήσουμε τη NEAT δραστηριότητά σου (περπάτημα) ή να μειώσουμε ελάχιστα τους υδατάνθρακες.")
+                                else:
+                                    st.markdown("⚠️ **Προειδοποίηση / Εκτός Στόχου:** Το βάρος σου αυξήθηκε ενώ ο στόχος είναι η απώλεια λίπους. Αυτό μπορεί να οφείλεται σε κατακράτηση υγρών, αυξημένο αλάτι, ή "
+                                                "κρυφές θερμίδες μέσα στην εβδομάδα.")
+                                    needs_readjustment = True
+                                    
+                            elif "Μυϊκή υπερτροφία" in u_goal:
+                                if total_diff >= 1.5:
+                                    st.markdown("💪 **Φανταστική δουλειά!** Βρίσκεσαι σε καθαρό αναβολικό περιβάλλον. Οι μύες σου γεμίζουν γλυκογόνο και χτίζεις μάζα. Συνέχισε έτσι!")
+                                elif 0 <= total_diff < 1.5:
+                                    st.markdown("⚖️ **Σταθερότητα.** Για να χτίσεις μύες χρειάζεται ελαφρύ θερμιδικό πλεόνασμα. Αν το βάρος δεν ανεβαίνει καθόλου, πρέπει να αυξήσεις τις ποσότητες του φαγητού σου.")
+                                    needs_readjustment = True
+                                else:
+                                    st.markdown("🚨 **Απώλεια Μάζας:** Χάνεις κιλά ενώ θέλεις να βάλλεις μυϊκή υπερτροφία. Ο μεταβολισμός σου καίει περισσότερο από όσο τρως.")
+                                    needs_readjustment = True
+                                    
+                            else: # Συντήρηση / Σύσφιξη
+                                if abs(total_diff) <= 1.0:
+                                    st.markdown("🎯 **Απόλυτος Έλεγχος!** Καταφέρνεις να διατηρείς το βάρος σου σταθερό (+/- 1kg), πράγμα που σημαίνει ότι η ανασύσταση σώματος λειτουργεί άψογα.")
+                                else:
+                                    st.markdown("🔄 **Διακυμάνσεις:** Το βάρος σου έχει ξεφύγει πάνω από 1kg από το αρχικό. Χρειάζεται να ελέγξουμε ξανά τις μερίδες σου.")
+                                    needs_readjustment = True
+                            
+                            st.markdown('</div>', unsafe_allow_html=True)
+                            
+                            # 🚨 ΕΜΦΑΝΙΣΗ ΚΟΥΜΠΙΟΥ ΓΙΑ ΕΚΔΟΣΗ ΝΕΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ (Αν χρειάζεται αναπροσαρμογή)
+                            if needs_readjustment:
+                                st.warning("💡 Η πρόοδός σου δείχνει ότι το τρέχον πλάνο σου χρειάζεται αλλαγή για να μην 'κολλήσει' ο μεταβολισμός σου.")
+                                if st.button("🚨 Αίτημα για Αναπροσαρμογή & Έκδοση Νέου Πλάνου"):
+                                    try:
+                                        # Καταγράφουμε το αίτημα στο Google Sheet ώστε να το δει ο Admin / Script
+                                        new_req = pd.DataFrame([{
+                                            "Ημερομηνία": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                                            "Ονοματεπώνυμο": u_name,
+                                            "Email": checkin_email.strip(),
+                                            "Κινητό": chart_data['Κινητό'].iloc[0] if 'Κινητό' in chart_data.columns else "-",
+                                            "Στόχος": u_goal,
+                                            "Τύπος": "Request New Plan",
+                                            "Βάρος Check-in": current_weight,
+                                            "Κατάσταση Email": "Σε αναμονή"
+                                        }])
+                                        df_all = conn.read(worksheet="Sheet1", ttl=0)
+                                        df_updated = pd.concat([df_all, new_req], ignore_index=True)
+                                        conn.update(worksheet="Sheet1", data=df_updated)
+                                        st.success("🎉 Το αίτημά σου καταχωρήθηκε! Η AI και οι Coaches του Karavas Gym θα σου στείλουν το Νέο Αναπροσαρμοσμένο Πλάνο σου στο email σου εντός των επόμενων ωρών!")
+                                    except Exception as ex:
+                                        st.error(f"Αποτυχία αποστολής αιτήματος: {ex}")
+                        else:
+                            st.warning("Δεν έχουν καταγραφεί έγκυρα δεδομένα βάρους για αυτό το email.")
+                    else:
+                        st.error("🔴 Δεν βρέθηκε ιστορικό για αυτό το email. Σιγουρευτείτε ότι βάλατε το email με το οποίο εκδώσατε το πλάνο σας!")
+            except Exception as e:
+                st.error(f"Σφάλμα κατά τη σύνδεση: {e}")
+
+    st.markdown("---")
+
+    # ⚖️ ΕΝΟΤΗΤΑ Β: ΚΑΤΑΧΩΡΗΣΗ ΝΕΟΥ ΒΑΡΟΥΣ (Πάντα ορατή)
+    st.markdown("#### 2. Νέα Καταχώρηση Βάρους (Weekly Check-in)")
+    input_email = st.text_input("Επιβεβαίωση Email για την καταχώρηση:", key="insert_email_input")
+    current_weight = st.number_input("Εισάγετε το τρέχον βάρος σας (kg):", min_value=30.0, max_value=200.0, value=75.0, step=0.1)
+    btn_checkin = st.button("⚖️ Καταχώρηση Νέου Βάρους & Ενημέρωση")
+
+    if btn_checkin:
+        if not input_email.strip():
+            st.error("Παρακαλώ συμπληρώστε το email σας για να γίνει η καταχώρηση!")
+        else:
+            try:
+                with st.spinner("🔄 Αποθήκευση νέου βάρους στο Google Sheet..."):
+                    df = conn.read(worksheet="Sheet1", ttl=0)
+                    
+                    user_matches = df[df['Email'].str.strip().str.lower() == input_email.strip().lower()]
+                    
+                    if not user_matches.empty:
+                        u_name = user_matches['Ονοματεπώνυμο'].iloc[0]
+                        u_phone = user_matches['Κινητό'].iloc[0] if 'Κινητό' in user_matches.columns else "-"
+                        u_goal = user_matches['Στόχος'].iloc[0]
+                    else:
+                        u_name = "Μέλος (Check-in)"
+                        u_phone = "-"
+                        u_goal = "Συντήρηση / Σύσφιξη"
+                    
+                    new_row = pd.DataFrame([{
+                        "Ημερομηνία": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                        "Ονοματεπώνυμο": u_name,
+                        "Email": input_email.strip(),
+                        "Κινητό": u_phone,
+                        "Στόχος": u_goal,
+                        "Τύπος": "Check-in",
+                        "Βάρος Check-in": current_weight,
+                        "Κατάσταση Email": "Check-in"
+                    }])
+                    
+                    df_updated = pd.concat([df, new_row], ignore_index=True)
+                    conn.update(worksheet="Sheet1", data=df_updated)
+                    st.success("🎉 Το νέο σας βάρος καταχωρήθηκε επιτυχώς! Πατήστε το κουμπί 'Εμφάνιση Προόδου' παραπάνω για να δείτε τη σύγκριση και τις προτάσεις!")
+            except Exception as e:
+                st.error(f"Αποτυχία καταχώρησης: {e}")
